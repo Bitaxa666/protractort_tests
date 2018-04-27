@@ -1,28 +1,32 @@
-# Use an official Python runtime as a parent image
-FROM selenium/standalone-chrome:latest
+# In pull Docker instance.
+FROM node:8.11.1
 
-#создаем папку, где будет наша программа
-RUN sudo mkdir -p /tests
+#create folder with tests
+RUN mkdir -p /tests
 
-#копируем все файлы из текущего пути к файлу Docker на вашей системе в нашу новую папку образа
-COPY . /tests/
+#Install required applications
+RUN echo 'deb http://httpredir.debian.org/debian jessie-backports main' >> /etc/apt/sources.list.d/jessie-backports.list
+RUN apt-get update && \
+    apt install -y -t jessie-backports openjdk-8-jre-headless ca-certificates-java && \
+    apt-get install -y xvfb wget openjdk-8-jre && \
+    wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    dpkg --unpack google-chrome-stable_current_amd64.deb && \
+    apt-get install -f -y && \
+    apt-get clean && \
+    rm google-chrome-stable_current_amd64.deb
 
-#update system
-RUN sudo apt-get update
+#Add java env
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+RUN export JAVA_HOME
 
-#install npm
-RUN sudo apt-get install -y npm
+#Creating user
+#RUN useradd -ms /bin/bash admin
 
-#update node
-RUN sudo npm cache clean -f
-RUN sudo npm install -g n
-RUN sudo n stable
+#Changing user
+#USER admin
 
-#node version
-RUN node -v
-
-#install build-essential
-RUN sudo apt-get install -y build-essential
+#To avoid conflicts with host machine dbus
+ENV DBUS_SESSION_BUS_ADDRESS=/dev/null
 
 #версия npm and node, chrome version на машине
 RUN npm -v
@@ -33,20 +37,14 @@ WORKDIR /tests
 
 #del node_modules
 RUN ls -alt
-RUN sudo rm -rf node_modules
-
-#скачиваем зависимые пакеты
+COPY package.json /tests/package.json
 RUN ls -alt
-RUN npm config set unsafe-perm=true
-RUN npm install
 
-#install npm i webdriver-manager
-
-# Запуск тестов
-RUN npm run protractor
+#копируем все файлы из текущего пути к файлу Docker на вашей системе в нашу новую папку образа
+COPY . /tests/
 
 # Make port 8091 available to the world outside this container for test
-EXPOSE 8091
+EXPOSE 5014
 
-# Run app.py when the container launches
-CMD /tests/e2e-tests
+#Open the bash
+CMD ["/bin/bash"]

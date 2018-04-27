@@ -1,6 +1,7 @@
 /**
  * Created by user on 4/25/18.
  */
+var HtmlReporter
 
 exports.config = {
 
@@ -11,11 +12,17 @@ exports.config = {
     ],
 
     capabilities: {
-        'browserName': 'chrome'
+        'directConnect': true,
+        'browserName': 'chrome',
+        'chromeOptions': {
+            'args': [
+                'no-sandbox'
+            ]
+        }
     },
 
     /*baseUrl: 'http://localhost:3000/',*/
-    baseUrl: 'https://www.google.com/',
+    baseUrl: 'http://172.17.0.2:5013/',
 
     framework: 'jasmine',
 
@@ -24,5 +31,6 @@ exports.config = {
     },
     onPrepare: function() {
         browser.ignoreSynchronization = true;
+        browser.manage().timeouts().implicitlyWait(20000);
     }
 };
